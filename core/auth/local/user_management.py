@@ -1,5 +1,7 @@
 import os
 import hmac
+import logging 
+
 from core.logger import userLogger
 from hashlib import sha512
 
@@ -93,7 +95,7 @@ def get_default_user():
     try:
         # Assume authentication is anonymous if only 1 user
         if User.objects.count() < 2:
-            userLogger.info("Default user logged in : yeti")
+            userLogger.log(logging.INFO,"Default user logged in : yeti")
             return User.objects.get(username="yeti")
         return AnonymousUserMixin()
     except DoesNotExist:
@@ -110,10 +112,10 @@ def authenticate(username, password):
     try:
         u = User.objects.get(username=username)
         if check_password_hash(u.password, password):
-            userLogger.info("User logged in : %s",username)
+            userLogger.log(logging.INFO,"User logged in : %s" % username)
             return u
         else:
-            userLogger.warn("Attempt to log in to : %s",username)
+            userLogger.log(logging.WARNING,"Attempt to log in to : %s" % username)
             return False
     except DoesNotExist:
         return False
@@ -131,5 +133,5 @@ def set_password(user, password):
         password, method='pbkdf2:sha256:20000')
     user.api_key = User.generate_api_key()
     user.session_token = generate_session_token(user)
-    userLogger.info("User password changed : %s",user.username)
+    userLogger.log(logging.INFO,"User password changed : %s" % user.username)
     return user
